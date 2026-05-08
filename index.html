@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Studiengänge DHd</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 1.5rem 1rem; color: #111; }
+
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.25rem; }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* Nav */
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb; }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .user-label { color: #6b7280; font-size: .85rem; }
+
+    /* Login */
+    .login-box { max-width: 360px; margin-top: 2rem; }
+    .login-box h1 { margin-bottom: 1.5rem; }
+
+    /* List */
+    .search-row { display: flex; gap: .5rem; margin-bottom: 1rem; }
+    .search-row input { flex: 1; }
+    .entry-list { list-style: none; border: 1px solid #e5e7eb; border-radius: 6px; }
+    .entry-list li { padding: .75rem 1rem; border-bottom: 1px solid #e5e7eb; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .entry-list li:last-child { border-bottom: none; }
+    .entry-list li:hover { background: #f9fafb; }
+    .entry-badge { font-size: .8rem; color: #6b7280; }
+    .empty { color: #9ca3af; padding: 1.5rem; text-align: center; cursor: default !important; }
+    .empty:hover { background: none !important; }
+
+    /* Form */
+    .form-group { margin-bottom: 1.25rem; }
+    .form-label { display: block; font-weight: 600; font-size: .9rem; margin-bottom: .4rem; }
+    .form-hint { font-size: .8rem; color: #6b7280; margin-bottom: .4rem; }
+
+    input[type=text], input[type=url], input[type=number], input[type=password], input[type=email] {
+      width: 100%; padding: .45rem .6rem; border: 1px solid #d1d5db; border-radius: 4px; font-size: .95rem;
+    }
+    input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,.15); }
+
+    /* Tag input */
+    .tags { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .5rem; min-height: .5rem; }
+    .tag { background: #ede9fe; color: #4c1d95; padding: .2rem .5rem; border-radius: 12px; font-size: .85rem; display: flex; align-items: center; gap: .3rem; }
+    .tag-remove { background: none; border: none; cursor: pointer; color: #7c3aed; font-size: 1rem; line-height: 1; padding: 0; }
+    .tag-input-row { display: flex; gap: .4rem; }
+    .tag-input-row input { flex: 1; }
+
+    /* Checkbox / radio groups */
+    .check-group, .radio-group { display: flex; flex-wrap: wrap; gap: 1rem; }
+    .check-group label, .radio-group label { font-weight: normal; display: flex; align-items: center; gap: .4rem; font-size: .95rem; cursor: pointer; }
+
+    /* Buttons */
+    button { padding: .45rem .9rem; border: none; border-radius: 4px; cursor: pointer; font-size: .9rem; transition: background .15s; }
+    .btn-primary { background: #4f46e5; color: #fff; }
+    .btn-primary:hover { background: #4338ca; }
+    .btn-secondary { background: #e5e7eb; color: #374151; }
+    .btn-secondary:hover { background: #d1d5db; }
+    .btn-danger { background: #ef4444; color: #fff; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-sm { padding: .3rem .6rem; font-size: .82rem; }
+
+    .form-actions { display: flex; gap: .75rem; align-items: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e7eb; }
+    .spacer { flex: 1; }
+
+    .error { color: #dc2626; font-size: .85rem; margin-top: .5rem; }
+
+    hr { border: none; border-top: 1px solid #f3f4f6; margin: 1.5rem 0; }
+  </style>
+</head>
+<body>
+
+<!-- ── LOGIN ─────────────────────────────────────────────────────────────── -->
+<div id="screen-login" class="screen">
+  <div class="login-box">
+    <h1>Studiengänge DHd</h1>
+    <div class="form-group" style="margin-top:1.5rem">
+      <label class="form-label" for="login-email">E-Mail</label>
+      <input type="email" id="login-email" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="login-password">Passwort</label>
+      <input type="password" id="login-password" autocomplete="current-password">
+    </div>
+    <button class="btn-primary" id="btn-login">Anmelden</button>
+    <p class="error" id="login-error" hidden></p>
+  </div>
+</div>
+
+<!-- ── LIST ──────────────────────────────────────────────────────────────── -->
+<div id="screen-list" class="screen">
+  <div class="nav">
+    <h1>Studiengänge DHd</h1>
+    <div class="nav-right">
+      <span class="user-label" id="user-email"></span>
+      <button class="btn-secondary btn-sm" id="btn-logout">Abmelden</button>
+    </div>
+  </div>
+  <div class="search-row">
+    <input type="text" id="search-input" placeholder="Suchen nach Name…">
+    <button class="btn-primary" id="btn-new">+ Neuer Eintrag</button>
+  </div>
+  <ul class="entry-list" id="entry-list">
+    <li class="empty">Lädt…</li>
+  </ul>
+</div>
+
+<!-- ── FORM ──────────────────────────────────────────────────────────────── -->
+<div id="screen-form" class="screen">
+  <div class="nav">
+    <button class="btn-secondary" id="btn-back">← Zurück</button>
+    <h2 id="form-title">Neuer Eintrag</h2>
+    <div></div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label" for="f-name">Studiengangsname *</label>
+    <input type="text" id="f-name">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Abschluss</label>
+    <div class="check-group">
+      <label><input type="checkbox" id="f-ab-bachelor" value="Bachelor"> Bachelor</label>
+      <label><input type="checkbox" id="f-ab-master" value="Master"> Master</label>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Art des Studiengangs nach Sahle</label>
+    <div class="radio-group">
+      <label><input type="radio" name="sahle" value="1"> 1</label>
+      <label><input type="radio" name="sahle" value="2"> 2</label>
+      <label><input type="radio" name="sahle" value="3"> 3</label>
+      <label><input type="radio" name="sahle" value=""> –</label>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="form-group">
+    <label class="form-label">Institutionen</label>
+    <p class="form-hint">GND-URIs, z.B. https://d-nb.info/gnd/2165342-2</p>
+    <div id="tags-institutionen"></div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Städte</label>
+    <p class="form-hint">GND-URIs</p>
+    <div id="tags-staedte"></div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Länder</label>
+    <p class="form-hint">GND-URIs</p>
+    <div id="tags-laender"></div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Sprachen</label>
+    <p class="form-hint">ISO-639-1, z.B. de, en</p>
+    <div id="tags-sprachen"></div>
+  </div>
+
+  <hr>
+
+  <div class="form-group">
+    <label class="form-label">Disziplinen</label>
+    <p class="form-hint">DFG-Codes, z.B. 104, 105, 104-01</p>
+    <div id="tags-disziplinen"></div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Fachbereiche / Department</label>
+    <div id="tags-fachbereiche"></div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Lehrstühle / Institutionelle Verankerung</label>
+    <div id="tags-lehrstuehle"></div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">(DH-)Inhalte</label>
+    <p class="form-hint">TADIRAH-Begriffe bis zweite Ebene</p>
+    <div id="tags-tadirah"></div>
+  </div>
+
+  <hr>
+
+  <div class="form-group">
+    <label class="form-label">Studienbeginn</label>
+    <div class="check-group">
+      <label><input type="checkbox" id="f-sb-wise" value="WiSe"> Wintersemester</label>
+      <label><input type="checkbox" id="f-sb-sose" value="SoSe"> Sommersemester</label>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">ECTS DH-Anteil (verpflichtend)</label>
+    <input type="number" id="f-ects-dh" min="0" style="max-width:120px">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">ECTS gesamt</label>
+    <input type="number" id="f-ects-gesamt" min="0" style="max-width:120px">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Dauer in Semestern</label>
+    <input type="number" id="f-dauer" min="1" max="20" style="max-width:120px">
+  </div>
+
+  <hr>
+
+  <div class="form-group">
+    <label class="form-label">Voraussetzungen</label>
+    <div id="tags-voraussetzungen"></div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Schwerpunkte (nach Selbstdarstellung)</label>
+    <div id="tags-schwerpunkte"></div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label" for="f-webadresse">Webadresse / Kontakt</label>
+    <input type="url" id="f-webadresse" placeholder="https://…">
+  </div>
+
+  <div class="form-actions">
+    <button class="btn-primary" id="btn-save">Speichern</button>
+    <button class="btn-secondary" id="btn-cancel">Abbrechen</button>
+    <div class="spacer"></div>
+    <button class="btn-danger" id="btn-delete" hidden>Eintrag löschen</button>
+  </div>
+  <p class="error" id="form-error" hidden></p>
+</div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+
+const SUPABASE_URL      = 'https://ocoxommixgpyeqaxpmdb.supabase.co'
+const SUPABASE_ANON_KEY = 'sb_publishable_NItorWZB-TmzhiGzdYmCLw_BPFDoOHJ'
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+// ── Screens ───────────────────────────────────────────────────────────────────
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
+  document.getElementById(id).classList.add('active')
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+supabase.auth.onAuthStateChange((_event, session) => {
+  if (session) {
+    document.getElementById('user-email').textContent = session.user.email
+    show('screen-list')
+    loadEntries()
+  } else {
+    show('screen-login')
+  }
+})
+
+document.getElementById('btn-login').addEventListener('click', async () => {
+  const email    = document.getElementById('login-email').value.trim()
+  const password = document.getElementById('login-password').value
+  const errEl    = document.getElementById('login-error')
+  const { error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) { errEl.textContent = error.message; errEl.hidden = false }
+  else { errEl.hidden = true }
+})
+
+document.getElementById('btn-logout').addEventListener('click', () => supabase.auth.signOut())
+
+// ── List ──────────────────────────────────────────────────────────────────────
+let allEntries = []
+
+async function loadEntries() {
+  const { data, error } = await supabase
+    .from('studiengaenge')
+    .select('id, name, abschluss')
+    .order('name')
+  if (!error) { allEntries = data ?? []; renderList(allEntries) }
+}
+
+function renderList(entries) {
+  const ul = document.getElementById('entry-list')
+  if (!entries.length) {
+    ul.innerHTML = '<li class="empty">Keine Einträge gefunden.</li>'
+    return
+  }
+  ul.innerHTML = entries.map(e => {
+    const badge = (e.abschluss ?? []).join(', ')
+    return `<li data-id="${e.id}">
+      <span>${e.name}</span>
+      ${badge ? `<span class="entry-badge">${badge}</span>` : ''}
+    </li>`
+  }).join('')
+  ul.querySelectorAll('li[data-id]').forEach(li =>
+    li.addEventListener('click', () => openEntry(li.dataset.id))
+  )
+}
+
+document.getElementById('search-input').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase()
+  renderList(allEntries.filter(en => en.name.toLowerCase().includes(q)))
+})
+
+document.getElementById('btn-new').addEventListener('click', () => openForm(null))
+
+// ── Tag inputs ────────────────────────────────────────────────────────────────
+const TAG_FIELDS = [
+  'institutionen', 'staedte', 'laender', 'sprachen', 'disziplinen',
+  'fachbereiche', 'lehrstuehle', 'tadirah', 'voraussetzungen', 'schwerpunkte'
+]
+
+function initTagInput(field, values = []) {
+  const container = document.getElementById(`tags-${field}`)
+  container.innerHTML = ''
+
+  const tagList = document.createElement('div')
+  tagList.className = 'tags'
+  tagList.id = `taglist-${field}`
+
+  const row = document.createElement('div')
+  row.className = 'tag-input-row'
+  const input = document.createElement('input')
+  input.type = 'text'
+  input.placeholder = 'Hinzufügen…'
+  const btn = document.createElement('button')
+  btn.className = 'btn-secondary btn-sm'
+  btn.textContent = '+'
+  btn.type = 'button'
+  btn.addEventListener('click', () => {
+    const val = input.value.trim()
+    if (val) { addTag(field, val); input.value = '' }
+  })
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); btn.click() } })
+
+  row.append(input, btn)
+  container.append(tagList, row)
+  values.forEach(v => addTag(field, v))
+}
+
+function addTag(field, value) {
+  const list = document.getElementById(`taglist-${field}`)
+  const tag = document.createElement('span')
+  tag.className = 'tag'
+  const text = document.createTextNode(value + ' ')
+  const removeBtn = document.createElement('button')
+  removeBtn.className = 'tag-remove'
+  removeBtn.type = 'button'
+  removeBtn.textContent = '×'
+  removeBtn.setAttribute('aria-label', 'Entfernen')
+  removeBtn.addEventListener('click', () => tag.remove())
+  tag.append(text, removeBtn)
+  list.appendChild(tag)
+}
+
+function getTagValues(field) {
+  return [...document.getElementById(`taglist-${field}`).querySelectorAll('.tag')]
+    .map(t => t.childNodes[0].textContent.trim())
+}
+
+// ── Form ──────────────────────────────────────────────────────────────────────
+let editingId = null
+
+function openForm(entry) {
+  editingId = entry?.id ?? null
+  document.getElementById('form-title').textContent = entry ? 'Eintrag bearbeiten' : 'Neuer Eintrag'
+  document.getElementById('btn-delete').hidden = !entry
+  document.getElementById('form-error').hidden = true
+
+  document.getElementById('f-name').value       = entry?.name       ?? ''
+  document.getElementById('f-ects-dh').value    = entry?.ects_dh    ?? ''
+  document.getElementById('f-ects-gesamt').value = entry?.ects_gesamt ?? ''
+  document.getElementById('f-dauer').value      = entry?.dauer      ?? ''
+  document.getElementById('f-webadresse').value = entry?.webadresse ?? ''
+
+  const ab = entry?.abschluss ?? []
+  document.getElementById('f-ab-bachelor').checked = ab.includes('Bachelor')
+  document.getElementById('f-ab-master').checked   = ab.includes('Master')
+
+  const sb = entry?.studienbeginn ?? []
+  document.getElementById('f-sb-wise').checked = sb.includes('WiSe')
+  document.getElementById('f-sb-sose').checked = sb.includes('SoSe')
+
+  const sahle = entry?.sahle_typ?.toString() ?? ''
+  document.querySelectorAll('input[name=sahle]').forEach(r => r.checked = r.value === sahle)
+
+  TAG_FIELDS.forEach(f => initTagInput(f, entry?.[f] ?? []))
+
+  show('screen-form')
+  window.scrollTo(0, 0)
+}
+
+async function openEntry(id) {
+  const { data, error } = await supabase
+    .from('studiengaenge').select('*').eq('id', id).single()
+  if (!error) openForm(data)
+}
+
+async function saveEntry() {
+  const name = document.getElementById('f-name').value.trim()
+  if (!name) { showFormError('Name ist erforderlich.'); return }
+
+  const abschluss = ['f-ab-bachelor', 'f-ab-master']
+    .filter(id => document.getElementById(id).checked)
+    .map(id => document.getElementById(id).value)
+
+  const studienbeginn = ['f-sb-wise', 'f-sb-sose']
+    .filter(id => document.getElementById(id).checked)
+    .map(id => document.getElementById(id).value)
+
+  const sahleRaw = document.querySelector('input[name=sahle]:checked')?.value
+  const ectsDh   = parseInt(document.getElementById('f-ects-dh').value)   || null
+  const ectsGes  = parseInt(document.getElementById('f-ects-gesamt').value) || null
+  const dauer    = parseInt(document.getElementById('f-dauer').value)      || null
+
+  const payload = {
+    name,
+    abschluss,
+    studienbeginn,
+    sahle_typ:   sahleRaw ? parseInt(sahleRaw) : null,
+    ects_dh:     ectsDh,
+    ects_gesamt: ectsGes,
+    dauer,
+    webadresse:  document.getElementById('f-webadresse').value.trim() || null,
+    ...Object.fromEntries(TAG_FIELDS.map(f => [f, getTagValues(f)]))
+  }
+
+  const { error } = editingId
+    ? await supabase.from('studiengaenge').update(payload).eq('id', editingId)
+    : await supabase.from('studiengaenge').insert(payload)
+
+  if (error) { showFormError(error.message) }
+  else { await loadEntries(); show('screen-list') }
+}
+
+async function deleteEntry() {
+  if (!confirm('Diesen Eintrag wirklich löschen?')) return
+  const { error } = await supabase.from('studiengaenge').delete().eq('id', editingId)
+  if (!error) { await loadEntries(); show('screen-list') }
+}
+
+function showFormError(msg) {
+  const el = document.getElementById('form-error')
+  el.textContent = msg
+  el.hidden = false
+}
+
+document.getElementById('btn-save').addEventListener('click', saveEntry)
+document.getElementById('btn-delete').addEventListener('click', deleteEntry)
+document.getElementById('btn-back').addEventListener('click', () => show('screen-list'))
+document.getElementById('btn-cancel').addEventListener('click', () => show('screen-list'))
+</script>
+</body>
+</html>
