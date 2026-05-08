@@ -311,7 +311,7 @@ function renderList(entries) {
     return
   }
   ul.innerHTML = entries.map(e => {
-    const badge = (e.abschluss ?? []).join(', ')
+    const badge = Array.isArray(e.abschluss) ? e.abschluss.join(', ') : (e.abschluss ?? '')
     return `<li data-id="${e.id}">
       <span>${e.name}</span>
       ${badge ? `<span class="entry-badge">${badge}</span>` : ''}
