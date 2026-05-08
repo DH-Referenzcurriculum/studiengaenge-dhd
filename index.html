@@ -229,6 +229,16 @@
   </div>
 
   <div class="form-group">
+    <label class="form-label" for="f-profil">Profil</label>
+    <input type="text" id="f-profil">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Ansprechpartner:in</label>
+    <div id="tags-ansprechpartner"></div>
+  </div>
+
+  <div class="form-group">
     <label class="form-label" for="f-webadresse">Webadresse / Kontakt</label>
     <input type="url" id="f-webadresse" placeholder="https://…">
   </div>
@@ -322,7 +332,8 @@ document.getElementById('btn-new').addEventListener('click', () => openForm(null
 // ── Tag inputs ────────────────────────────────────────────────────────────────
 const TAG_FIELDS = [
   'institutionen', 'staedte', 'laender', 'sprachen', 'disziplinen',
-  'fachbereiche', 'lehrstuehle', 'tadirah', 'voraussetzungen', 'schwerpunkte'
+  'fachbereiche', 'lehrstuehle', 'tadirah', 'voraussetzungen', 'schwerpunkte',
+  'ansprechpartner'
 ]
 
 function initTagInput(field, values = []) {
@@ -382,11 +393,12 @@ function openForm(entry) {
   document.getElementById('btn-delete').hidden = !entry
   document.getElementById('form-error').hidden = true
 
-  document.getElementById('f-name').value       = entry?.name       ?? ''
-  document.getElementById('f-ects-dh').value    = entry?.ects_dh    ?? ''
+  document.getElementById('f-name').value        = entry?.name        ?? ''
+  document.getElementById('f-ects-dh').value     = entry?.ects_dh     ?? ''
   document.getElementById('f-ects-gesamt').value = entry?.ects_gesamt ?? ''
-  document.getElementById('f-dauer').value      = entry?.dauer      ?? ''
-  document.getElementById('f-webadresse').value = entry?.webadresse ?? ''
+  document.getElementById('f-dauer').value       = entry?.dauer       ?? ''
+  document.getElementById('f-webadresse').value  = entry?.webadresse  ?? ''
+  document.getElementById('f-profil').value      = entry?.profil      ?? ''
 
   const ab = entry?.abschluss ?? []
   document.getElementById('f-ab-bachelor').checked = ab.includes('Bachelor')
@@ -437,6 +449,7 @@ async function saveEntry() {
     ects_gesamt: ectsGes,
     dauer,
     webadresse:  document.getElementById('f-webadresse').value.trim() || null,
+    profil:      document.getElementById('f-profil').value.trim() || null,
     ...Object.fromEntries(TAG_FIELDS.map(f => [f, getTagValues(f)]))
   }
 
