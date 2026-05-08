@@ -203,12 +203,12 @@
 
   <div class="form-group">
     <label class="form-label">ECTS DH-Anteil (verpflichtend)</label>
-    <input type="number" id="f-ects-dh" min="0" style="max-width:120px">
+    <input type="text" id="f-ects-dh" style="max-width:120px">
   </div>
 
   <div class="form-group">
     <label class="form-label">ECTS gesamt</label>
-    <input type="number" id="f-ects-gesamt" min="0" style="max-width:120px">
+    <input type="text" id="f-ects-gesamt" style="max-width:120px">
   </div>
 
   <div class="form-group">
@@ -436,9 +436,9 @@ async function saveEntry() {
     .map(id => document.getElementById(id).value)
 
   const sahleRaw = document.querySelector('input[name=sahle]:checked')?.value
-  const ectsDh   = parseInt(document.getElementById('f-ects-dh').value)   || null
-  const ectsGes  = parseInt(document.getElementById('f-ects-gesamt').value) || null
-  const dauer    = parseInt(document.getElementById('f-dauer').value)      || null
+  const ectsDh   = document.getElementById('f-ects-dh').value.trim()      || null
+  const ectsGes  = document.getElementById('f-ects-gesamt').value.trim()   || null
+  const dauer    = parseInt(document.getElementById('f-dauer').value)       || null
 
   const payload = {
     name,
