@@ -256,14 +256,18 @@ function show(id) {
 }
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
+let initialized = false
+
 supabase.auth.onAuthStateChange((event, session) => {
   if (session) {
     document.getElementById('user-email').textContent = session.user.email
-    if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+    if (!initialized) {
+      initialized = true
       show('screen-list')
       loadEntries()
     }
-  } else {
+  } else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
+    initialized = false
     show('screen-login')
   }
 })
