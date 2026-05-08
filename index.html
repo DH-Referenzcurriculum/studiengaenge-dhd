@@ -411,7 +411,11 @@ function openForm(entry) {
   const sahle = entry?.sahle_typ?.toString() ?? ''
   document.querySelectorAll('input[name=sahle]').forEach(r => r.checked = r.value === sahle)
 
-  TAG_FIELDS.forEach(f => initTagInput(f, entry?.[f] ?? []))
+  TAG_FIELDS.forEach(f => {
+    const val = entry?.[f]
+    const arr = Array.isArray(val) ? val : (val ? [val] : [])
+    initTagInput(f, arr)
+  })
 
   show('screen-form')
   window.scrollTo(0, 0)
