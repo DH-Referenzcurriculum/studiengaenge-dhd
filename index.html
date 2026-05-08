@@ -299,9 +299,35 @@ let allEntries = []
 async function loadEntries() {
   const { data, error } = await supabase
     .from('studiengaenge')
-    .select('id, name, abschluss')
+    .select('id, name, institutionen')
     .order('name')
   if (!error) { allEntries = data ?? []; renderList(allEntries) }
+}
+
+const gndCache = {}
+
+function extractGndId(val) {
+  if (!val) return null
+  const first = parseFieldValue(val)[0] ?? ''
+  const uriMatch = first.match(/gnd\/([0-9X-]+)/)
+  if (uriMatch) return uriMatch[1]
+  const idMatch = first.match(/^([0-9]+[0-9X-]*)/)
+  if (idMatch) return idMatch[1]
+  return null
+}
+
+async function resolveGnd(id) {
+  if (!id) return null
+  if (gndCache[id] !== undefined) return gndCache[id]
+  gndCache[id] = null
+  try {
+    const res = await fetch(`https://lobid.org/gnd/${id}.json`)
+    if (res.ok) {
+      const data = await res.json()
+      gndCache[id] = data.preferredName ?? null
+    }
+  } catch (e) {}
+  return gndCache[id]
 }
 
 function renderList(entries) {
@@ -310,16 +336,19 @@ function renderList(entries) {
     ul.innerHTML = '<li class="empty">Keine Einträge gefunden.</li>'
     return
   }
-  ul.innerHTML = entries.map(e => {
-    const badge = Array.isArray(e.abschluss) ? e.abschluss.join(', ') : (e.abschluss ?? '')
-    return `<li data-id="${e.id}">
-      <span>${e.name}</span>
-      ${badge ? `<span class="entry-badge">${badge}</span>` : ''}
-    </li>`
-  }).join('')
+  ul.innerHTML = entries.map(e => `<li data-id="${e.id}">
+    <span>${e.name}</span>
+    <span class="entry-badge" id="badge-${e.id}"></span>
+  </li>`).join('')
   ul.querySelectorAll('li[data-id]').forEach(li =>
     li.addEventListener('click', () => openEntry(li.dataset.id))
   )
+  entries.forEach(async e => {
+    const id = extractGndId(e.institutionen)
+    const name = await resolveGnd(id)
+    const badge = document.getElementById(`badge-${e.id}`)
+    if (badge && name) badge.textContent = name
+  })
 }
 
 document.getElementById('search-input').addEventListener('input', e => {
@@ -385,6 +414,15 @@ function getTagValues(field) {
 }
 
 // ── Form ──────────────────────────────────────────────────────────────────────
+function parseFieldValue(val) {
+  if (!val) return []
+  if (Array.isArray(val)) return val.flatMap(v => parseFieldValue(v))
+  if (typeof val === 'string' && val.startsWith('[')) {
+    try { return parseFieldValue(JSON.parse(val)) } catch (e) {}
+  }
+  return val.split(';').map(v => v.trim()).filter(Boolean)
+}
+
 let editingId = null
 
 function openForm(entry) {
@@ -411,11 +449,7 @@ function openForm(entry) {
   const sahle = entry?.sahle_typ?.toString() ?? ''
   document.querySelectorAll('input[name=sahle]').forEach(r => r.checked = r.value === sahle)
 
-  TAG_FIELDS.forEach(f => {
-    const val = entry?.[f]
-    const arr = Array.isArray(val) ? val : (val ? [val] : [])
-    initTagInput(f, arr)
-  })
+  TAG_FIELDS.forEach(f => initTagInput(f, parseFieldValue(entry?.[f])))
 
   show('screen-form')
   window.scrollTo(0, 0)
@@ -454,7 +488,7 @@ async function saveEntry() {
     dauer,
     webadresse:  document.getElementById('f-webadresse').value.trim() || null,
     profil:      document.getElementById('f-profil').value.trim() || null,
-    ...Object.fromEntries(TAG_FIELDS.map(f => [f, getTagValues(f)]))
+    ...Object.fromEntries(TAG_FIELDS.map(f => [f, getTagValues(f).join('; ') || null]))
   }
 
   const { error } = editingId
