@@ -256,11 +256,13 @@ function show(id) {
 }
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
-supabase.auth.onAuthStateChange((_event, session) => {
+supabase.auth.onAuthStateChange((event, session) => {
   if (session) {
     document.getElementById('user-email').textContent = session.user.email
-    show('screen-list')
-    loadEntries()
+    if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+      show('screen-list')
+      loadEntries()
+    }
   } else {
     show('screen-login')
   }
